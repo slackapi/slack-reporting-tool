@@ -1,0 +1,11 @@
+# local env variables
+.env
+
+# Node
+node_modules/
+
+# TypeScript output
+build/
+
+# VSCode settings
+.vscode/

@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node ./bin/www",
+    "start": "node ./build/app.js",
     "start:local": "concurrently --kill-others \"npm run ngrok\" \"npm start\"",
-    "ngrok": "node -r dotenv/config tools/launch-ngrok.js"
+    "ngrok": "node -r dotenv/config tools/ngrok.js"
   },
   "dependencies": {
     "@slack/bolt": "^1.2.0",
@@ -25,5 +25,9 @@
   "bugs": {
     "url": "https://github.com/slackapi/slack-reporting-tool/issues"
   },
-  "homepage": "https://github.com/slackapi/slack-reporting-tool#readme"
+  "homepage": "https://github.com/slackapi/slack-reporting-tool#readme",
+  "optionalDependencies": {
+    "concurrently": "^4.1.1",
+    "ngrok": "^3.2.3"
+  }
 }

@@ -6,10 +6,17 @@
     "lib": [                                  /* Specify library files to be included in the compilation. */
       "es5", "es2015", "es2016", "es2017"
     ],
-    "outDir": "./build",                      /* Redirect output structure to the directory. */
     "rootDir": "./src",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+    "outDir": "./build",                      /* Redirect output structure to the directory. */
 
     /* Strict Type-Checking Options */
-    "strict": true                            /* Enable all strict type-checking options. */
+    "strict": true,                            /* Enable all strict type-checking options. */
+
+    /* Module Resolution Options */
+    "baseUrl": "./",                          /* Base directory to resolve non-absolute module names. */
+    "paths": {                                 /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
+      "*": ["./types/*"]
+    },
+    "esModuleInterop": true
   }
 }

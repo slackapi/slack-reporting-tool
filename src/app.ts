@@ -1,6 +1,9 @@
 require('dotenv').config();
 
 const { App, LogLevel } = require('@slack/bolt');
+
+/* CONFIG */
+// The triage channel for admins to use. TODO: make this configable via the app
 const triageChannel = "GLTJQ4405";
 
 const app = new App({
@@ -19,7 +22,13 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
       // The token you used to initialize your app is stored in the `context` object
       token: context.botToken,
       channel: triageChannel,
-      text: `<@${body.user.id}> reported a message.`
+      blocks: [{
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `<@${body.user.id}> reported a message, but this time with _blocks_.`
+        }
+      }]
     });
   }
   catch (error) {

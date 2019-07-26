@@ -10,7 +10,7 @@
     "outDir": "./build",                      /* Redirect output structure to the directory. */
 
     /* Strict Type-Checking Options */
-    "strict": true,                            /* Enable all strict type-checking options. */
+    // "strict": true,                            /* Enable all strict type-checking options. */
 
     /* Module Resolution Options */
     "baseUrl": "./",                          /* Base directory to resolve non-absolute module names. */

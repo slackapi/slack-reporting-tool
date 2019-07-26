@@ -1,15 +1,35 @@
-import dotenv from 'dotenv';
-dotenv.config();
+require('dotenv').config();
 
-const { App } = require('@slack/bolt');
+const { App, LogLevel } = require('@slack/bolt');
+const triageChannel = "GLTJQ4405";
 
 const app = new App({
-  authorize: () => {
-    return Promise.resolve({
-      botToken: process.env.SLACK_BOT_TOKEN,
-      // userToken: process.env.SLACK_USER_TOKEN,
-    });
-  },
+  token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   logLevel: 'DEBUG'
-})
+});
+
+app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => {
+  //acknowledge immediately
+  ack();
+  console.log(body);
+  try {
+    // Call the chat.scheduleMessage method with a token
+    const result = await app.client.chat.postMessage({
+      // The token you used to initialize your app is stored in the `context` object
+      token: context.botToken,
+      channel: triageChannel,
+      text: `<@${body.user.id}> reported a message.`
+    });
+  }
+  catch (error) {
+    console.error(error);
+  }
+});
+
+(async () => {
+  // Start your app
+  await app.start(process.env.PORT || 3000);
+
+  console.log('⚡️ Bolt:\tApp is running!');
+})();

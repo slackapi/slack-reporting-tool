@@ -18,8 +18,8 @@ if (!authtoken && subdomain) {
   const url = await ngrok.connect({
     subdomain,
     authtoken,
-    addr: process.env.PORT | '3000'
+    addr: process.env.PORT || '3000'
   });
 
-  console.log(`🚚 ngrok: App is at ${url} \n          Use http://127.0.0.1:4040 to inspect`)
+  console.log(`🚚 ngrok:\tApp is at ${url} \n\t\tUse http://127.0.0.1:4040 to inspect`)
 })();

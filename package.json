@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node ./build/app.js",
-    "start:local": "concurrently --kill-others \"npm run ngrok\" \"npm start\"",
+    "start": "npm run build && node ./build/app.js",
+    "start:local": "concurrently --kill-others \"npm start\" \"npm run ngrok\"",
     "ngrok": "node -r dotenv/config tools/ngrok.js"
   },
   "dependencies": {

@@ -22,13 +22,25 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
       // The token you used to initialize your app is stored in the `context` object
       token: context.botToken,
       channel: triageChannel,
-      blocks: [{
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": `<@${body.user.id}> reported a message, but this time with _blocks_.`
+      blocks: [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": `<@${body.user.id}> reported a message originally posted by <@${body.message.user}>`
+          }
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": `${body.message.text}`
+          }
         }
-      }]
+      ]
     });
   }
   catch (error) {

@@ -18,11 +18,11 @@ const app = new App({
  * plus the option to report the message anonymously
  */
 app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => {
-  //acknowledge immediately
+  // acknowledge immediately
   ack();
 
-  console.log(body);
-
+  // show the confirmation dialog
+  // TODO break out the actual dialog definition into a separate file
   try{
     const result = await app.client.dialog.open({
       token: context.botToken,
@@ -30,7 +30,7 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
         "callback_id": "report_confirm",
         "title": "Report this message",
         "submit_label": "Report",
-        "state": "reported",
+        "state": `{"message": "${JSON.stringify(body.message)}"`,
         "elements": [
           {
             "type": "textarea",
@@ -44,7 +44,7 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
             "name": "anonymous",
             "label": "Report anonymously",
             "data_source": "static",
-            "value": "false",
+            "value": "no",
             "options": [
               {
                 "label": "No",
@@ -73,6 +73,7 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
   //acknowledge immediately
   ack();
 
+  console.log(body);
   try {
     // Call the chat.scheduleMessage method with the bot token
     const result = await app.client.chat.postMessage({

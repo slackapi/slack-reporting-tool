@@ -30,7 +30,7 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
         "callback_id": "report_confirm",
         "title": "Report this message",
         "submit_label": "Report",
-        "state": `{"message": "${JSON.stringify(body.message)}"`,
+        "state": `{ "message": ${JSON.stringify(body.message)} }`,
         "elements": [
           {
             "type": "textarea",
@@ -70,44 +70,57 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
  * Handle the actual submission of the reported message once the user confirms via the dialog
 */
 app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
-  //acknowledge immediately
+  //acknowledge receipt of dialog
   ack();
 
-  console.log(body);
-  try {
-    // Call the chat.scheduleMessage method with the bot token
-    const result = await app.client.chat.postMessage({
-      // The token you used to initialize your app is stored in the `context` object
-      token: context.botToken,
-      channel: triageChannel,
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `<@${body.user.id}> reported a message originally posted by <@${body.message.user}>`
+  try{
+    console.log("Body:");
+    console.log(body);
+    // get the message being reported, stored in the state field of the dialog
+    const reported_message = JSON.parse(`${body.state}`);
+    console.log("Reported message:");
+    console.log(reported_message);
+
+    try {
+      // Call the chat.scheduleMessage method with the bot token
+      const result = await app.client.chat.postMessage({
+        // The token you used to initialize your app is stored in the `context` object
+        token: context.botToken,
+        channel: triageChannel,
+        blocks: [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": `*<@${body.user.id}>* reported a message `
+            }
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": `${reported_message.message.text}`
+            }
           }
-        },
-        {
-          "type": "divider"
-        },
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `${body.message.text}`
-          }
-        }
-      ]
-    });
+        ]
+      });
+    }
+    catch (error) {
+      // call to chat.postMessage error
+      console.error(error);
+    }
   }
-  catch (error) {
+  catch (error){
+    // parsing reported message error
     console.error(error);
   }
 });
 
 (async () => {
-  // Start your app
+  // Start the app
   await app.start(process.env.PORT || 3000);
 
   console.log('⚡️ Bolt:\tApp is running!');

@@ -44,15 +44,15 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
             "name": "anonymous",
             "label": "Report anonymously",
             "data_source": "static",
-            "value": "no",
+            "value": "false",
             "options": [
               {
                 "label": "No",
-                "value": "no"
+                "value": "false"
               },
               {
                 "label": "Yes",
-                "value": "yes"
+                "value": "true"
               }
             ]
           }
@@ -74,15 +74,35 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
   ack();
 
   try{
-    console.log("Body:");
-    console.log(body);
-    // get the message being reported, stored in the state field of the dialog
+
+
+    // the form data the user submitted: optional comment and whether to report anonymously
+    const reported_context = body.submission;
+    let report_header = '';
+    // who reported the message, handle anonymity
+    const report_anonymously = (reported_context.anonymous === 'true');
+    const reporter = report_anonymously ? `Someone anonymously` : `<@${body.user.id}>`;
+    // addtional commentary, handle none
+    const report_comment = reported_context.comment;
+    if(report_comment !== null){
+      report_header = `${reporter} reported a message with the following comment:\n\n${report_comment}`
+    } else{
+      report_header = `${reporter} reported a message.`
+    }
+    // the message being reported, stored in the state field of the dialog
     const reported_message = JSON.parse(`${body.state}`);
-    console.log("Reported message:");
+
+    //https://jimrayone.slack.com/archives/CLR44VD8F/p1564421658002600
+    const message_ts = reported_message.message.ts.replace('.', '');
+    // this should use https://api.slack.com/methods/chat.getPermalink instead
+    const message_link = `https://${body.team.domain}.slack.com/archives/${body.channel.id}/p${message_ts}`;
+
     console.log(reported_message);
+    console.log(message_link);
+    // console.log(body);
 
     try {
-      // Call the chat.scheduleMessage method with the bot token
+      // Call the chat.postMessage method with the bot token
       const result = await app.client.chat.postMessage({
         // The token you used to initialize your app is stored in the `context` object
         token: context.botToken,
@@ -92,7 +112,7 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `*<@${body.user.id}>* reported a message `
+              "text": `${report_header}`
             }
           },
           {
@@ -104,7 +124,16 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
               "type": "mrkdwn",
               "text": `${reported_message.message.text}`
             }
-          }
+          },
+          {
+            "type": "context",
+            "elements": [
+              {
+                "type": "mrkdwn",
+                "text": `Posted in <#${body.channel.id}>`
+              }
+            ]
+          },
         ]
       });
     }

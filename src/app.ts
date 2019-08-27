@@ -35,8 +35,8 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
           {
             "type": "textarea",
             "name": "comment",
-            "label": "Additional information",
-            "hint": "Provide any additional context or information you believe is important",
+            "label": "Why are you reporting this message?",
+            "hint": "Optionally add any context or information you believe is important. This will be shared with moderators along with the original message.",
             "optional": true
           },
           {
@@ -47,11 +47,11 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
             "value": "false",
             "options": [
               {
-                "label": "No",
+                "label": "No, include my name",
                 "value": "false"
               },
               {
-                "label": "Yes",
+                "label": "Yes, report without my name",
                 "value": "true"
               }
             ]
@@ -74,8 +74,6 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
   ack();
 
   try{
-
-
     // the form data the user submitted: optional comment and whether to report anonymously
     const reported_context = body.submission;
     let report_header = '';

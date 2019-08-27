@@ -42,16 +42,16 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
           {
             "type": "select",
             "name": "anonymous",
-            "label": "Report anonymously",
+            "label": "Include your name?",
             "data_source": "static",
             "value": "false",
             "options": [
               {
-                "label": "No, include my name",
+                "label": "Yes, include my name with the report",
                 "value": "false"
               },
               {
-                "label": "Yes, report without my name",
+                "label": "No, report anonymously",
                 "value": "true"
               }
             ]
@@ -71,6 +71,7 @@ app.action({ callback_id: 'report_message' }, async ({ body, ack, context }) => 
 */
 app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
   //acknowledge receipt of dialog
+  // TODO: send a message back to the reporting user acknowledging receipt of their message
   ack();
 
   try{
@@ -83,9 +84,9 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
     // addtional commentary, handle none
     const report_comment = reported_context.comment;
     if(report_comment !== null){
-      report_header = `${reporter} reported a message with the following comment:\n\n${report_comment}`
+      report_header = `${reporter} reported the following message with the comment: ${report_comment}`
     } else{
-      report_header = `${reporter} reported a message.`
+      report_header = `${reporter} reported the following message.`
     }
     // the message being reported, stored in the state field of the dialog
     const reported_message = JSON.parse(`${body.state}`);
@@ -110,7 +111,7 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `${report_header}`
+              "text": `:grey_exclamation: ${report_header}`
             }
           },
           {
@@ -120,7 +121,7 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `${reported_message.message.text}`
+              "text": `*<@${reported_message.message.user}> said*:\n${reported_message.message.text}`
             }
           },
           {
@@ -128,10 +129,13 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
             "elements": [
               {
                 "type": "mrkdwn",
-                "text": `Posted in <#${body.channel.id}>`
+                "text": `Posted at <${message_link}|${message_link}>`
               }
             ]
           },
+          {
+            "type": "divider"
+          }
         ]
       });
     }

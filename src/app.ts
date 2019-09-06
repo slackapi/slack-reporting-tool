@@ -4,7 +4,7 @@ const { App, LogLevel } = require('@slack/bolt');
 
 /* CONFIG */
 // The triage channel for admins to use. TODO: make this configable via the app?
-const triageChannel = "GLTJQ4405";
+const triageChannel = "GN3G8L893";
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,

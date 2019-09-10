@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const { App, LogLevel } = require('@slack/bolt');
+const responses = require('./bot_responses');
 
 /* CONFIG */
 // The triage channel for admins to use. TODO: make this configable via the app?
@@ -159,6 +160,23 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
     // error when parsing reported message
     console.error(error);
   }
+});
+
+app.event('app_home_opened', async ({ event, context, say }) => {
+  //get the message history with the user
+  let history = await app.client.im.history({
+    token: context.botToken,
+    channel: event.channel,
+    count: 1
+  })
+
+  if(!history.messages.length){
+    say(responses.welcome);
+  }
+});
+
+app.action({ action_id: 'coc_button'}, async({ack}) => {
+  ack();
 });
 
 (async () => {

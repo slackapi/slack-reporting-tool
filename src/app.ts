@@ -4,7 +4,7 @@ const { App, LogLevel } = require('@slack/bolt');
 
 /* CONFIG */
 // The triage channel for admins to use. TODO: make this configable via the app?
-const triageChannel = "GN3G8L893";
+const triage_channel = process.env.SLACK_TRIAGE_CHANNEL;
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -80,6 +80,7 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
     let report_header = '';
     // who reported the message, handle anonymity
     const report_anonymously = (reported_context.anonymous === 'true');
+    const reporter_id = body.user.id;
     const reporter = report_anonymously ? `Someone anonymously` : `<@${body.user.id}>`;
     // addtional commentary, handle none
     const report_comment = reported_context.comment;
@@ -91,27 +92,22 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
     // the message being reported, stored in the state field of the dialog
     const reported_message = JSON.parse(`${body.state}`);
 
-    //https://jimrayone.slack.com/archives/CLR44VD8F/p1564421658002600
     const message_ts = reported_message.message.ts.replace('.', '');
-    // this should use https://api.slack.com/methods/chat.getPermalink instead
+    // TODO: this should use https://api.slack.com/methods/chat.getPermalink instead
     const message_link = `https://${body.team.domain}.slack.com/archives/${body.channel.id}/p${message_ts}`;
 
-    console.log(reported_message);
-    console.log(message_link);
-    // console.log(body);
-
     try {
-      // Call the chat.postMessage method with the bot token
+      // Call the chat.postMessage method with the bot token, post reported message to the triage channel
       const result = await app.client.chat.postMessage({
         // The token you used to initialize your app is stored in the `context` object
         token: context.botToken,
-        channel: triageChannel,
+        channel: triage_channel,
         blocks: [
           {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `:grey_exclamation: ${report_header}`
+              "text": `${report_header}`
             }
           },
           {
@@ -138,14 +134,29 @@ app.action({ callback_id: 'report_confirm'}, async ({ body, ack, context}) => {
           }
         ]
       });
+
+      try {
+        console.log("DM the reporting user");
+        console.log(reporter_id);
+        // Post a DM to the user who reported the message confirming report
+        const confirmation = await app.client.chat.postMessage({
+          token: context.botToken,
+          channel: reporter_id,
+          as_user: true,
+          text: "Thank you for reporting a message, we appreciate your help in keeping the Slack Community workspace respectful and inclusive.\nThe workspace administrators will review the message and determine the appropriate response."
+        });
+      }
+      catch (error) {
+        console.error(error);
+      }
     }
     catch (error) {
-      // call to chat.postMessage error
+      // error when calling chat.postMessage reporting the message
       console.error(error);
     }
   }
   catch (error){
-    // parsing reported message error
+    // error when parsing reported message
     console.error(error);
   }
 });

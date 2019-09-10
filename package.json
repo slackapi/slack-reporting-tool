@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "postinstall": "npm run build",
     "start": "npm run serve",
-    "start:local": "concurrently --kill-others \"npm start\" \"npm run ngrok\"",
+    "start:local": "npm run build && concurrently --kill-others \"npm start\" \"npm run ngrok\"",
     "serve": "node ./build/app.js",
     "ngrok": "node -r dotenv/config tools/ngrok.js"
   },

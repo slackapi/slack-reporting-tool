@@ -175,6 +175,14 @@ app.event('app_home_opened', async ({ event, context, say }) => {
   }
 });
 
+app.message('help', async({message, say}) => {
+  // in theory, the app should only be getting DMs,
+  // but double check just in case the app is configured with extra scopes
+  if(message.channel_type == "im"){
+    say(responses.help);
+  }
+});
+
 app.action({ action_id: 'coc_button'}, async({ack}) => {
   ack();
 });

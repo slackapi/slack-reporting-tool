@@ -24,7 +24,7 @@ module.exports = {
           },
           "value": "coc_button_pressed",
           "action_id": "coc_button",
-          "url": "https://community.slack.com/files/TG4KUE8JV/FMN6J0JKT?origin_team=TG4KUE8JV"
+          "url": `${process.env.CODE_OF_CONDUCT_URL}`
         }
       }
     ]
@@ -67,7 +67,7 @@ module.exports = {
           },
           "value": "coc_button_pressed",
           "action_id": "coc_button",
-          "url": "https://community.slack.com/files/TG4KUE8JV/FMN6J0JKT?origin_team=TG4KUE8JV"
+          "url": `${process.env.CODE_OF_CONDUCT_URL}`
         }
       }
     ]

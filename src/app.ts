@@ -1,17 +1,87 @@
 require('dotenv').config();
 
-const { App, LogLevel } = require('@slack/bolt');
+import { App, LogLevel } from '@slack/bolt';
+import { createConnection, RowDataPacket } from "mysql2/promise";
 const responses = require('./bot_responses');
 
 /* CONFIG */
 // The triage channel for admins to use. TODO: make this configable via the app?
 const triage_channel = process.env.SLACK_TRIAGE_CHANNEL;
 
-const app = new App({
-  token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  logLevel: 'DEBUG'
-});
+const databaseConfig = {
+  host: process.env.DB_HOSTNAME,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD
+}
+
+const botToken : string = process.env.SLACK_BOT_TOKEN as string;
+
+function getApp(): App {
+  if (botToken && botToken.startsWith('xoxb-')) {
+    return new App({
+      token: botToken,
+      signingSecret: process.env.SLACK_SIGNING_SECRET,
+      logLevel: LogLevel.DEBUG
+    });
+  } else {
+    return new App({
+      signingSecret: process.env.SLACK_SIGNING_SECRET,
+      clientId: process.env.SLACK_CLIENT_ID,
+      clientSecret: process.env.SLACK_CLIENT_SECRET,
+      stateSecret: process.env.STATE_SECRET,
+      scopes: process.env.SLACK_BOT_SCOPES,
+      installerOptions: {
+        authVersion: 'v2',
+        installPath: '/slack/install',
+        redirectUriPath: '/slack/oauth_redirect',
+      },
+      installationStore: {
+        storeInstallation: async installation => {
+          const connection = await createConnection(databaseConfig);
+          connection.execute(
+            'INSERT INTO installations SET team_id = ?, installation = ?',
+            [
+              installation.team.id,
+              JSON.stringify(installation)
+            ]
+          ).then(() => {
+            return;
+          }
+          ).catch((error) => {
+            console.error(error);
+          });
+        },
+        fetchInstallation: async installQuery => {
+          const connection = await createConnection(databaseConfig);
+    
+          const install = await connection.query(
+            'SELECT installation FROM installations where team_id = ?',
+            [
+              installQuery.teamId,
+            ]
+          ).then(async ([rows]) => {
+            if (rows.length > 0) {
+              const results = rows as RowDataPacket;
+              return results[0]["installation"];
+            } else {
+              console.log(`[OAuth] No matching installation for ${installQuery.teamId}`);
+            }
+          }
+          ).catch((error) => {
+            console.error(error);
+          });
+          return JSON.parse(install);
+        }
+      },
+      logLevel: LogLevel.DEBUG
+    });
+    
+  }
+}
+
+const app = getApp();
+
 
 /*
  * A message was reported by a user via a message action
@@ -71,8 +141,7 @@ app.shortcut({ callback_id: 'report_message' }, async ({ body, ack, context }) =
  * Handle the actual submission of the reported message once the user confirms via the dialog
 */
 app.action({ callback_id: 'report_confirm' }, async ({ body, ack, context }) => {
-  //acknowledge receipt of dialog
-  // TODO: send a message back to the reporting user acknowledging receipt of their message
+  // acknowledge receipt of dialog
   await ack();
 
   try {
@@ -103,6 +172,7 @@ app.action({ callback_id: 'report_confirm' }, async ({ body, ack, context }) => 
         // The token you used to initialize your app is stored in the `context` object
         token: context.botToken,
         channel: triage_channel,
+        text: report_header,
         blocks: [
           {
             "type": "section",

@@ -7,7 +7,7 @@ export default {
       callback_id: 'report_confirm',
       title: {
         type: 'plain_text',
-        text: 'My App',
+        text: 'Report this message',
         emoji: true,
       },
       submit: {
@@ -20,7 +20,7 @@ export default {
         text: 'Cancel',
         emoji: true,
       },
-      private_metadata: `${JSON.stringify({message_ts, channel_id, message_text, message_author})}`,
+      private_metadata: `${JSON.stringify({ message_ts, channel_id, message_text, message_author })}`,
       blocks: [
         {
           type: 'input',

@@ -3,9 +3,10 @@ require('dotenv').config();
 import { App, LogLevel } from '@slack/bolt';
 import { createConnection, RowDataPacket } from "mysql2/promise";
 const responses = require('./bot_responses');
+const modal = require('./modal');
 
 /* CONFIG */
-// The triage channel for admins to use. TODO: make this configable via the app?
+// The triage channel for admins to use.
 const triage_channel = process.env.SLACK_TRIAGE_CHANNEL;
 
 const databaseConfig = {
@@ -54,7 +55,7 @@ function getApp(): App {
         },
         fetchInstallation: async installQuery => {
           const connection = await createConnection(databaseConfig);
-    
+
           const install = await connection.query(
             'SELECT installation FROM installations where team_id = ?',
             [
@@ -76,7 +77,7 @@ function getApp(): App {
       },
       logLevel: LogLevel.DEBUG
     });
-    
+
   }
 }
 
@@ -85,60 +86,27 @@ const app = getApp();
 
 /*
  * A message was reported by a user via a message action
- * Respond with a dialog asking for an optional bit of context from the reporting user
+ * Respond with a modal asking for an optional bit of context from the reporting user
  * plus the option to report the message anonymously
  */
 app.shortcut({ callback_id: 'report_message' }, async ({ body, ack, context }) => {
   // acknowledge immediately
   await ack();
 
-  // show the confirmation dialog
-  // TODO break out the actual dialog definition into a separate file
-  try {
-    const result = await app.client.dialog.open({
-      token: context.botToken,
-      dialog: {
-        "callback_id": "report_confirm",
-        "title": "Report this message",
-        "submit_label": "Report",
-        "state": `{ "message": ${JSON.stringify(body.message)} }`,
-        "elements": [
-          {
-            "type": "textarea",
-            "name": "comment",
-            "label": "Why are you reporting this message?",
-            "hint": "Optionally add any context or information you believe is important. This will be shared with moderators along with the original message.",
-            "optional": true
-          },
-          {
-            "type": "select",
-            "name": "anonymous",
-            "label": "Include your name?",
-            "data_source": "static",
-            "value": "false",
-            "options": [
-              {
-                "label": "Yes, include my name with the report",
-                "value": "false"
-              },
-              {
-                "label": "No, report anonymously",
-                "value": "true"
-              }
-            ]
-          }
-        ]
-      },
-      trigger_id: body.trigger_id
-    });
-  }
-  catch (error) {
-    console.error(error);
-  }
-});
+  //Open a modal and save the request payload
+  const result = await app.client.views.open({
+    token: context.botToken,
+    trigger_id: body.trigger_id,
+    view: modal.confirm
+  });
+
+  //Save the initial conversation ID and the viewID for later use
+  //const reported_conversation = result.view.blocks[0].element.private_metadata;
+  //const view_id = result.view.id;
 
 /*
- * Handle the actual submission of the reported message once the user confirms via the dialog
+ * Handle the actual submission of the reported message once the user confirms via the modal
+ * TODO: https://slack.dev/bolt-js/concepts#view_submissions
 */
 app.action({ callback_id: 'report_confirm' }, async ({ body, ack, context }) => {
   // acknowledge receipt of dialog

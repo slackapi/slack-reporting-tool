@@ -12,7 +12,7 @@
     "postinstall": "npm run build"
   },
   "dependencies": {
-    "@slack/bolt": "^2.3.0",
+    "@slack/bolt": "^3.3.0",
     "mysql2": "2.1.0",
     "mysql2-promise": "0.1.4",
     "dotenv": "^8.0.0"

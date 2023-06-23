@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/slackapi/slack-reporting-tool#readme",
   "optionalDependencies": {
-    "concurrently": "^4.1.1",
+    "concurrently": "^8.2.0",
     "ngrok": "^3.2.3"
   }
 }
